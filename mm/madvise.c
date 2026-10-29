@@ -71,6 +71,18 @@ static long madvise_behavior(struct vm_area_struct *vma,
 		}
 		new_flags &= ~VM_DONTCOPY;
 		break;
+	case MADV_WIPEONFORK:
+	        if (vma->vm_file || (vma->vm_flags &
+	            (VM_SHARED | VM_PFNMAP | VM_IO |
+	             VM_HUGETLB | VM_MIXEDMAP))) {
+	                error = -EINVAL;
+	                goto out;
+	        }
+	        new_flags |= VM_WIPEONFORK;
+	        break;
+	case MADV_KEEPONFORK:
+	        new_flags &= ~VM_WIPEONFORK;
+	        break;
 	case MADV_DONTDUMP:
 		new_flags |= VM_DONTDUMP;
 		break;
@@ -410,6 +422,8 @@ madvise_behavior_valid(int behavior)
 #endif
 	case MADV_DONTDUMP:
 	case MADV_DODUMP:
+	case MADV_WIPEONFORK:
+	case MADV_KEEPONFORK:
 		return 1;
 
 	default:
